@@ -23,8 +23,9 @@ def sign_file(file_hash, key):
 
     return signature
 
-pub,prv =generate_keys()
-# usage 
-print("File Signature:", sign_file(hash_file('qais.txt').encode(), prv))
+if __name__ == "__main__":
+    prv,pub =generate_keys()
+    # usage
+    print("File Signature:", sign_file(hash_file('qais.txt').encode(), prv))
 
 

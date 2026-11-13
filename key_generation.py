@@ -19,5 +19,6 @@ def generate_keys():
     return private_key, public_key
 
 
-#usage 
-pub,prv =generate_keys()
+if __name__ == "__main__":
+    #usage
+    prv,pub =generate_keys()
