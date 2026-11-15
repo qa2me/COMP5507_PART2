@@ -2,8 +2,8 @@ import os
 
 from key_generation import generate_keys
 from encryption import encrypt_file, decrypt_file
-from signatures import hash_message, sign_file
-from verification import verify_message
+from signatures import hash_file, hash_message, sign_file
+from verification import verify_file
 
 # keys are kept in memory while the program runs
 # Alice = sender (signs), Bob = receiver (decrypts)
@@ -92,25 +92,29 @@ def menu_sign():
     print("\nMessage signed. Choose option 5 to verify it.")
 
 
-# 5. Verify signature: the user enters the original message and a (possibly modified) one.
-#    The original is signed with Alice's PRIVATE key, then the second message is checked
-#    against that SAME signature with Alice's PUBLIC key.
+# 5. Verify signature: the user enters the original file and a (possibly modified) file.
+#    The original file's content is signed with Alice's PRIVATE key, then the second file
+#    is checked against that SAME signature with Alice's PUBLIC key.
 def menu_verify():
     if not keys_ready():
         return
 
-    print("Original:")
-    original = input()
-    print("\nModified:")
-    modified = input()
+    print("Original file:")
+    original = ask_for_file()
+    if original is None:
+        return
+    print("\nModified file:")
+    modified = ask_for_file()
+    if modified is None:
+        return
 
-    signature = sign_file(hash_message(original).encode(), keys["alice_private"])
+    signature = sign_file(hash_file(original).encode(), keys["alice_private"])
 
-    print("\nOriginal hash: ", hash_message(original))
-    print("Modified hash: ", hash_message(modified))
+    print("\nOriginal hash: ", hash_file(original))
+    print("Modified hash: ", hash_file(modified))
 
     print("\nSignature verification:")
-    if verify_message(modified, signature, keys["alice_public"]):
+    if verify_file(modified, signature, keys["alice_public"]):
         print("VALID")
     else:
         print("INVALID")
