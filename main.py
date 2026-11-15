@@ -2,8 +2,8 @@ import os
 
 from key_generation import generate_keys
 from encryption import encrypt_file, decrypt_file
-from signatures import hash_file, sign_file
-from verification import verify_file
+from signatures import hash_message, sign_file
+from verification import verify_message
 
 # keys are kept in memory while the program runs
 # Alice = sender (signs), Bob = receiver (decrypts)
@@ -13,6 +13,9 @@ keys = {
     "bob_private": None,
     "bob_public": None,
 }
+
+# the last message Alice signed and its signature (sent to Bob together)
+signed = {"message": None, "signature": None}
 
 
 def keys_ready():
@@ -67,53 +70,50 @@ def menu_decrypt():
         print("Decryption failed: the file is not encrypted, or it was encrypted with a different key.")
 
 
-# 4. Sign message: Alice signs with her PRIVATE key
+# 4. Sign message: Alice hashes + signs with her PRIVATE key
 def menu_sign():
     if not keys_ready():
         return
-    path = ask_for_file()
-    if path is None:
-        return
+    print("Enter message:")
+    message = input()
 
-    file_hash = hash_file(path)
+    message_hash = hash_message(message)
     print("\nSHA-256 hash:")
-    print(file_hash)
+    print(message_hash)
 
     print("\nGenerating digital signature...")
-    signature = sign_file(file_hash.encode(), keys["alice_private"])
+    signature = sign_file(message_hash.encode(), keys["alice_private"])
 
     print("\nSignature:")
     print(signature.hex())
 
-    sig_path = path + ".sig"
-    with open(sig_path, "wb") as f:
-        f.write(signature)
-    print("\nSignature saved to:", sig_path)
+    signed["message"] = message
+    signed["signature"] = signature
+    print("\nMessage signed. Choose option 5 to verify it.")
 
 
-# 5. Verify signature: Bob checks it with Alice's PUBLIC key
+# 5. Verify signature: the user enters the original message and a (possibly modified) one.
+#    The original is signed with Alice's PRIVATE key, then the second message is checked
+#    against that SAME signature with Alice's PUBLIC key.
 def menu_verify():
     if not keys_ready():
         return
-    path = ask_for_file()
-    if path is None:
-        return
 
-    sig_path = path + ".sig"
-    if not os.path.isfile(sig_path):
-        print("No signature found at", sig_path, "- sign the file first (option 4).")
-        return
-    with open(sig_path, "rb") as f:
-        signature = f.read()
+    print("Original:")
+    original = input()
+    print("\nModified:")
+    modified = input()
 
-    print("\nCurrent SHA-256 hash:")
-    print(hash_file(path))
+    signature = sign_file(hash_message(original).encode(), keys["alice_private"])
+
+    print("\nOriginal hash: ", hash_message(original))
+    print("Modified hash: ", hash_message(modified))
 
     print("\nSignature verification:")
-    if verify_file(path, signature, keys["alice_public"]):
-        print("VALID - the file is unchanged and was signed by Alice.")
+    if verify_message(modified, signature, keys["alice_public"]):
+        print("VALID")
     else:
-        print("INVALID - the file was modified or the signature is not Alice's.")
+        print("INVALID")
 
 
 def main():

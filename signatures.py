@@ -16,6 +16,11 @@ def hash_file(file_path):
     return sha256_hash.hexdigest()
 
 
+# getting the hash of a typed message (same SHA-256 as hash_file, but for text)
+def hash_message(message):
+    return hashlib.sha256(message.encode()).hexdigest()
+
+
 # encrypt the hash of the file with the key
 def sign_file(file_hash, key):
 
