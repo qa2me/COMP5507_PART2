@@ -53,7 +53,7 @@ def menu_encrypt():
         encrypt_file(path, keys["bob_public"])
         print("File encrypted with Bob's public key. Only Bob's private key can decrypt it.")
     except ValueError:
-        print("Encryption failed: RSA-2048 with OAEP can only encrypt up to 190 bytes.")
+        print("Encryption failed: hybrid encryption (RSA + AES) could not encrypt the file.")
 
 
 # 3. Decrypt message: Bob decrypts with his PRIVATE key

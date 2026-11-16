@@ -40,7 +40,7 @@ Choose **option 1 first**. The other options need the keys. Keys are kept in mem
 | File | Purpose |
 |---|---|
 | `key_generation.py` | `generate_keys()`: creates an RSA-2048 key pair (public exponent 65537) and returns `(private_key, public_key)` |
-| `encryption.py` | `encrypt_file()` / `decrypt_file()`: RSA encryption with OAEP padding (SHA-256) |
+| `encryption.py` | `encrypt_file()` / `decrypt_file()`: hybrid encryption — AES-256-GCM encrypts the file, RSA-OAEP (SHA-256) encrypts only the AES key |
 | `signatures.py` | `hash_file()` / `hash_message()`: SHA-256 hashing; `sign_file()`: signs a hash with RSA (PKCS#1 v1.5, SHA-256) |
 | `verification.py` | `verify_signature()`, `verify_file()`, `verify_message()`: check a signature with the sender's public key |
 | `main.py` | The interactive menu that connects all modules |
@@ -111,11 +111,20 @@ hash ──sign with Alice's PRIVATE key──> signature ───────�
                                                                 VALID / INVALID
 ```
 
+## How hybrid encryption works
+
+RSA-2048 with OAEP can encrypt only a small amount of data, so a file is encrypted with **AES-256-GCM**
+and only the random AES key is encrypted with **RSA** (Bob's public key). The stored file is:
+
+```
+[2-byte key length][RSA-encrypted AES key][12-byte nonce][AES-GCM ciphertext]
+```
+
+See `hybrid_encryption.png` for a diagram of the full flow. This works with files of any size and type,
+including PDFs.
+
 ## Known limitations
 
-- **Encryption size limit:** RSA-2048 with OAEP (SHA-256) can encrypt at most **190 bytes**.
-  Larger files, such as a PDF, show an error message instead of being encrypted.
-  Real systems use *hybrid encryption* for large files: AES encrypts the file and RSA encrypts only the AES key.
 - **In-place encryption:** options 2 and 3 overwrite the original file. Use a copy when testing.
 - **Keys are not saved:** a new key pair is created each time the program runs, so a file encrypted in one run
   cannot be decrypted in a later run.
